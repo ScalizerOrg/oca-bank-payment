@@ -120,8 +120,12 @@ class AccountMove(models.Model):
                     else:
                         move.partner_bank_id = False
             else:
-                if not move.company_id.keep_partner_bank_without_payment_mode:
-                    move.partner_bank_id = False
+                # Nothing to do here: account_payment_mode's own compute (called
+                # above via super()) already applies the
+                # keep_partner_bank_without_payment_mode guard before clearing
+                # partner_bank_id, since that's where the clearing actually happens
+                # (2026-08-24).
+                pass
         return res
 
     @api.depends("line_ids.matched_credit_ids", "line_ids.matched_debit_ids")

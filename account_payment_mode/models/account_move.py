@@ -116,7 +116,19 @@ class AccountMove(models.Model):
                     else:
                         move.partner_bank_id = False
             else:
-                move.partner_bank_id = False
+                company = move.company_id
+                # Defensive check: `keep_partner_bank_without_payment_mode` is defined
+                # by the optional `account_payment_partner` module. When that module is
+                # installed, its own override of this method used to run *after* this
+                # one (through super()) and only avoided clearing partner_bank_id when
+                # this flag was set, but by then this method had already cleared it,
+                # making the flag a no-op. Checking it here, where the clearing
+                # actually happens, is what makes it effective (2026-08-24).
+                if (
+                    "keep_partner_bank_without_payment_mode" not in company._fields
+                    or not company.keep_partner_bank_without_payment_mode
+                ):
+                    move.partner_bank_id = False
         return res
 
     @api.depends("line_ids.matched_credit_ids", "line_ids.matched_debit_ids")
