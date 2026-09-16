@@ -95,13 +95,10 @@ class AccountMove(models.Model):
                             partner.supplier_payment_mode_id.refund_payment_mode_id
                         )
 
-    @api.depends("bank_partner_id", "payment_mode_id", "reversed_entry_id")
+    @api.depends("bank_partner_id", "payment_mode_id")
     def _compute_partner_bank_id(self):
         res = super()._compute_partner_bank_id()
         for move in self:
-            if move.move_type in ("in_refund", "out_refund") and move.reversed_entry_id:
-                move.partner_bank_id = move.reversed_entry_id.partner_bank_id
-                continue
             payment_mode = move.payment_mode_id
             if payment_mode:
                 if (
